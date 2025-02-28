@@ -3,4 +3,8 @@ project(game_engine C)
 
 set(CMAKE_C_STANDARD 23)
 
-add_executable(game_engine main.c)
+add_executable(game_engine main.c
+        engine/array_list.h
+        engine/types.h
+        engine/util.h
+)
