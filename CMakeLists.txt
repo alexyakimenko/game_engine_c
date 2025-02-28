@@ -8,4 +8,5 @@ add_executable(game_engine main.c
         engine/types.h
         engine/util.h
         engine/array_list/array_list.c
+        engine/io.h
 )
