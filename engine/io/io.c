@@ -5,45 +5,29 @@
 #include <string.h>
 
 File io_file_read(const char* path) {
-    File file = { .is_valid = false };
+    File file = {.is_valid = false};
 
-    FILE* rfile = fopen(path, "r");
-
-    if (!rfile) {
-        printf("Error opening file!\n");
+    FILE* fp = fopen(path, "rb");
+    if (!fp) {
+        printf("File not found\n");
         return file;
     }
 
-    usize size = 0;
-    usize capacity = 1 << 11; // 2048
+    fseek(fp, 0, SEEK_END);
+    const usize size = ftell(fp);
 
-    char* buffer = malloc(capacity);
+    rewind(fp);
 
+    char* buffer = malloc(size + 1);
     if (!buffer) {
-        printf("Error allocating memory!\n");
-        fclose(rfile);
+        printf("Could not allocate memory\n");
         return file;
     }
 
-    while (fgets(buffer + size, (int)capacity - (int)size, rfile)) {
-        size += strlen(buffer + size);
+    fread(buffer, 1, size, fp);
+    fclose(fp);
 
-        if (size + 1 >= capacity) {
-            capacity *= 2;
-            char* temp = realloc(buffer, capacity);
-
-            if (!temp) {
-                printf("Error allocating memory!\n");
-                free(buffer);
-                fclose(rfile);
-                return file;
-            }
-
-            buffer = temp;
-        }
-    }
-
-    fclose(rfile);
+    buffer[size] = '\0';
 
     file.data = buffer;
     file.length = size;
@@ -51,4 +35,5 @@ File io_file_read(const char* path) {
 
     return file;
 }
+
 i32 io_file_write(void* buffer, usize size, const char* path);
