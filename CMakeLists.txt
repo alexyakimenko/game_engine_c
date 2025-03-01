@@ -9,4 +9,5 @@ add_executable(game_engine main.c
         engine/util.h
         engine/array_list/array_list.c
         engine/io.h
+        engine/io/io.c
 )
