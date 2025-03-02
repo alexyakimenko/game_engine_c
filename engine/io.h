@@ -8,4 +8,4 @@ typedef struct file {
 } File;
 
 File io_file_read(const char* path);
-i32 io_file_write(void* buffer, usize size, const char* path);
+i8 io_file_write(const char* path, const void* buffer, usize size);

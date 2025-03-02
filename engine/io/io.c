@@ -36,4 +36,16 @@ File io_file_read(const char* path) {
     return file;
 }
 
-i32 io_file_write(void* buffer, usize size, const char* path);
+i8 io_file_write(const char* path, const void* buffer, const usize size) {
+    FILE* fp = fopen(path, "wb");
+
+    if (!fp) {
+        printf("File not found\n");
+        return 1;
+    }
+
+    fwrite(buffer, 1, size, fp);
+    fclose(fp);
+
+    return 0;
+}
