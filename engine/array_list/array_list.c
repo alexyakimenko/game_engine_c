@@ -78,7 +78,7 @@ u8 array_list_remove(Array_List* list, const usize index) {
 
     memcpy(item_ptr, end_ptr, list->item_size); // does not save order
 
-    // in case i'll want to save order after removal
+    // in case I'll want to save order after removal
     // memcpy(item_ptr, item_ptr + list->item_size, list->item_size * list->length);
 
     return 0;
