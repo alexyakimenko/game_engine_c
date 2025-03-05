@@ -48,6 +48,15 @@ target_compile_definitions(${PROJECT_NAME}
         PRIVATE SDL_MAIN_USE_CALLBACKS
 )
 
+add_custom_target(
+        CopyAssets ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+)
+
+add_dependencies(${PROJECT_NAME} CopyAssets)
+
 if (WIN32)
     add_custom_command(
             TARGET ${PROJECT_NAME} POST_BUILD
