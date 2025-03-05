@@ -6,20 +6,24 @@
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 {
+    time_init(60);
     render_init(1280, 720);
     return SDL_APP_CONTINUE;
 }
 
+float posX = 0.0f;
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
+    time_update();
     render_update();
 
     render_quad_line(
-        (vec2){(f32)global.render.width * 0.5f, (f32)global.render.height * 0.5f},
+        (vec2){posX, (f32)global.render.height * 0.5f},
         (vec2){50, 50},
         (vec4){0, 0.5f, 0.8f, 1});
 
     render_end();
+    time_update_late();
     return SDL_APP_CONTINUE;
 }
 
@@ -33,6 +37,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, const SDL_Event *event)
             if (event->key.key == SDLK_ESCAPE)
             {
                 return SDL_APP_SUCCESS;
+            }
+            if (event->key.key == SDLK_D) {
+                posX += 10.0f;
+            } else if (event->key.key == SDLK_A) {
+                posX -= 10.0f;
             }
         default:
             break;
