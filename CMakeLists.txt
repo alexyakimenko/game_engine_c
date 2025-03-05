@@ -32,6 +32,13 @@ add_executable(${PROJECT_NAME} main.c
         engine/array_list/array_list.c
         engine/io.h
         engine/io/io.c
+        engine/global.h
+        engine/global.c
+        engine/render.h
+        engine/render/render.c
+        engine/render/render_internal.h
+        engine/render/render_init.c
+        engine/render/render_util.c
 )
 
 add_subdirectory(dependencies/glad)

@@ -2,40 +2,24 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-static SDL_Window *window = nullptr;
-static SDL_GLContext context = nullptr;
+#include "engine/global.h"
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    render_init(1280, 720);
+    return SDL_APP_CONTINUE;
+}
 
-    if (SDL_Init(SDL_INIT_VIDEO) == false)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize SDL!", SDL_GetError(), nullptr);
-        return SDL_APP_FAILURE;
-    }
+SDL_AppResult SDL_AppIterate(void *appstate)
+{
+    render_update();
 
-    window = SDL_CreateWindow(
-            "2D GameEngine",
-            (int)1280,
-            (int)720,
-            SDL_WINDOW_OPENGL
-        );
+    render_quad_line(
+        (vec2){(f32)global.render.width * 0.5f, (f32)global.render.height * 0.5f},
+        (vec2){50, 50},
+        (vec4){0, 0.5f, 0.8f, 1});
 
-    if (window == NULL) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't create window/renderer!", SDL_GetError(), nullptr);
-        return SDL_APP_FAILURE;
-    }
-
-    context = SDL_GL_CreateContext(window);
-
-    if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Couldn't initialize OpenGL!", SDL_GetError(), nullptr);
-        return SDL_APP_FAILURE;
-    }
-
+    render_end();
     return SDL_APP_CONTINUE;
 }
 
@@ -57,16 +41,4 @@ SDL_AppResult SDL_AppEvent(void *appstate, const SDL_Event *event)
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate)
-{
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    SDL_GL_SwapWindow(window);
-    return SDL_APP_CONTINUE;
-}
-
-void SDL_AppQuit(void *appstate, SDL_AppResult result)
-{
-    SDL_GL_DestroyContext(context);
-}
+void SDL_AppQuit(void *appstate, SDL_AppResult result) { }

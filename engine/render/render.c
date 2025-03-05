@@ -1,0 +1,109 @@
+#include "../render.h"
+
+#include <glad/glad.h>
+
+#include "render_internal.h"
+#include "../global.h"
+
+static Render_State_Internal state = {0};
+
+void render_init(const i32 width, const i32 height) {
+    global.render.width = width;
+    global.render.height = height;
+    global.render.window = render_init_window(width, height, "2D Game Engine");
+
+    render_init_quad(&state.vao_quad, &state.vbo_quad, &state.ebo_quad);
+    render_init_line(&state.vao_line, &state.vbo_line);
+    render_init_shaders(&state);
+    render_init_color_texture(&state.texture_color);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void render_update() {
+    glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void render_end() {
+    SDL_GL_SwapWindow(global.render.window);
+}
+
+void render_quad(vec2 pos, vec2 size, vec4 color) {
+    glUseProgram(state.shader_default);
+
+    mat4x4 model;
+    mat4x4_identity(model);
+
+    mat4x4_translate(model, pos[0], pos[1], 0);
+    mat4x4_scale_aniso(model, model, size[0], size[1], 1);
+
+    // set model matrix uniform
+    glUniformMatrix4fv(
+        glGetUniformLocation(state.shader_default, "model"),
+        1, GL_FALSE,
+        &model[0][0]
+        );
+
+    // set color vector uniform
+    glUniform4fv(
+        glGetUniformLocation(state.shader_default, "color"),
+        1, color
+        );
+
+    glBindVertexArray(state.vao_quad);
+
+    glBindTexture(GL_TEXTURE_2D, state.texture_color);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+    glBindVertexArray(0);
+}
+
+void render_line_segment(vec2 start, const vec2 end, vec4 color) {
+    glUseProgram(state.shader_default);
+    glLineWidth(3.0f);
+
+    const f32 x = end[0] - start[0];
+    const f32 y = end[1] - start[1];
+    const f32 line[6] = {0, 0, 0, x, y, 0};
+
+    mat4x4 model;
+    mat4x4_translate(model, start[0], start[1], 0.0f);
+
+    // set model matrix uniform
+    glUniformMatrix4fv(
+        glGetUniformLocation(state.shader_default, "model"),
+        1, GL_FALSE,
+        &model[0][0]
+        );
+
+    // set color vector uniform
+    glUniform4fv(
+        glGetUniformLocation(state.shader_default, "color"),
+        1, color
+        );
+
+    glBindTexture(GL_TEXTURE_2D, state.texture_color);
+    glBindVertexArray(state.vao_line);
+    glBindBuffer(GL_ARRAY_BUFFER, state.vbo_line);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+    glDrawArrays(GL_LINES, 0, 2);
+
+    glBindVertexArray(0);
+}
+
+void render_quad_line(vec2 pos, const vec2 size, vec4 color) {
+    const vec2 points[4] = {
+        {pos[0] - size[0] * 0.5f, pos[1] - size[1] * 0.5f},
+        {pos[0] + size[0] * 0.5f, pos[1] - size[1] * 0.5f},
+        {pos[0] + size[0] * 0.5f, pos[1] + size[1] * 0.5f},
+        {pos[0] - size[0] * 0.5f, pos[1] + size[1] * 0.5f},
+    };
+
+    render_line_segment(points[0], points[1], color);
+    render_line_segment(points[1], points[2], color);
+    render_line_segment(points[2], points[3], color);
+    render_line_segment(points[3], points[0], color);
+}
