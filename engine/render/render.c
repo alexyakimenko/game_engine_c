@@ -107,3 +107,9 @@ void render_quad_line(vec2 pos, const vec2 size, vec4 color) {
     render_line_segment(points[2], points[3], color);
     render_line_segment(points[3], points[0], color);
 }
+
+void render_aabb(f32* aabb, vec4 color) {
+    vec2 size;
+    vec2_scale(size, &aabb[2], 2);
+    render_quad_line(&aabb[0], size, color);
+}

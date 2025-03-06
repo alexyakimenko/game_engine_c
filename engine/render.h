@@ -17,3 +17,4 @@ void render_end(void);
 void render_quad(vec2 pos, vec2 size, vec4 color);
 void render_line_segment(vec2 start, const vec2 end, vec4 color);
 void render_quad_line(vec2 pos, const vec2 size, vec4 color);
+void render_aabb(f32* aabb, vec4 color);

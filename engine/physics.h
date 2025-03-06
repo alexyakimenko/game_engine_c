@@ -19,3 +19,4 @@ void physics_init(void);
 void physics_update(void);
 usize physics_body_create(vec2 position, const vec2 size);
 Body* physics_body_get(usize index);
+bool physics_point_intersects_aabb(const vec2 point, AABB aabb);
