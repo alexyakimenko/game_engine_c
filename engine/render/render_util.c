@@ -13,7 +13,6 @@ u32 render_shader_create(const char* path_vert, const char* path_frag) {
 
     const File vertex_file = io_file_read(path_vert);
     if (!vertex_file.is_valid) {
-        puts(vertex_file.data);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error reading vertex shader", path_vert, nullptr);
     }
 
