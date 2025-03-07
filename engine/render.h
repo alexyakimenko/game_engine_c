@@ -12,7 +12,7 @@ typedef struct render_state {
 } Render_State;
 
 void render_init(i32 width, i32 height);
-void render_update(void);
+void render_begin(void);
 void render_end(void);
 void render_quad(vec2 pos, vec2 size, vec4 color);
 void render_line_segment(vec2 start, const vec2 end, vec4 color);

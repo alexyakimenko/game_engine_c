@@ -10,6 +10,10 @@
 constexpr u32 body_count = 100;
 
 AABB test_aabb;
+AABB cursor_aabb;
+AABB sum_aabb;
+AABB start_aabb;
+
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 {
     time_init(60);
@@ -19,12 +23,26 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 
     SDL_HideCursor();
 
-    const AABB aabb = {
+    const AABB test = {
         .position = {(f32)global.render.width * 0.5f, (f32)global.render.height * 0.5f},
         .half_size = {50, 50}
     };
 
-    test_aabb = aabb;
+    const AABB cursor = {
+        .half_size = {75, 75},
+    };
+
+    const AABB start = cursor;
+
+    const AABB sum = {
+        .position = {test.position[0], test.position[1]},
+        .half_size = {test.half_size[0] + cursor.half_size[0], test.half_size[1] + cursor.half_size[1]},
+    };
+
+    test_aabb = test;
+    cursor_aabb = cursor;
+    sum_aabb = sum;
+    start_aabb = start;
 
     return SDL_APP_CONTINUE;
 }
@@ -44,15 +62,35 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     input_handle();
     physics_update();
 
-    render_update();
+    render_begin();
 
-    render_aabb((f32*)&test_aabb, (vec4){1, 1, 1, 0.5f});
+    cursor_aabb.position[0] = pos[0];
+    cursor_aabb.position[1] = pos[1];
 
-    if (physics_point_intersects_aabb(pos, test_aabb)) {
-        render_quad(pos, (vec2){5, 5}, RED);
+    render_aabb((f32*)&test_aabb, WHITE);
+    render_aabb((f32*)&sum_aabb, (vec4){1, 1, 1, 0.5f});
+
+    AABB minkowski_difference = aabb_minkowski_difference(test_aabb, cursor_aabb);
+    render_aabb((f32*)&minkowski_difference, ORANGE);
+
+    vec2 pv;
+    aabb_penetration_vector(pv, minkowski_difference);
+
+    AABB collision_aabb = cursor_aabb;
+    collision_aabb.position[0] += pv[0];
+    collision_aabb.position[1] += pv[1];
+
+    if (physics_aabb_intersects_aabb(test_aabb, cursor_aabb)) {
+        render_aabb((f32*)&collision_aabb, CYAN);
+        render_line_segment(cursor_aabb.position, collision_aabb.position, PURPLE);
+        render_aabb((f32*)&cursor_aabb, RED);
     } else {
-        render_quad(pos, (vec2){5, 5}, CYAN);
+        render_aabb((f32*)&cursor_aabb, WHITE);
     }
+
+    render_aabb((f32*)&start_aabb, WHITE);
+    render_line_segment(start_aabb.position, cursor_aabb.position, PURPLE);
+
 
     render_end();
     time_update_late();
@@ -70,6 +108,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, const SDL_Event *event)
             {
                 return SDL_APP_SUCCESS;
             }
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            start_aabb = cursor_aabb;
         default:
             break;
     }
