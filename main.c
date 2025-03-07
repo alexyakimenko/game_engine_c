@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -54,9 +55,14 @@ void input_handle(void) {
     pos[0] = x;
     pos[1] = (f32)global.render.height - y;
 }
-
+char buffer[50];
 SDL_AppResult SDL_AppIterate(void *appstate)
 {
+    if (SDL_GetTicks() - global.time.frame_last >= 1000.0f) {
+        sprintf(buffer, "%s - %d fps", "Current FPS", global.time.frame_rate);
+        SDL_SetWindowTitle(global.render.window, buffer);
+    }
+
     time_update();
     input_update();
     input_handle();
