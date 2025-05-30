@@ -48,6 +48,8 @@ add_executable(${PROJECT_NAME} main.c
         engine/physics.h
         engine/physics/physics.c
         engine/physics/physics_internal.h
+        engine/entity/entity.c
+        engine/entity.h
 )
 
 add_subdirectory(dependencies/glad)
