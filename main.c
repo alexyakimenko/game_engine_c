@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
@@ -7,6 +8,7 @@
 #include "engine/physics.h"
 #include "engine/util.h"
 #include "engine/entity.h"
+#include "engine/render.h"
 
 typedef enum collision_layer {
     COLLISION_LAYER_PLAYER = 1,
@@ -19,6 +21,8 @@ usize enemies_ids[2];
 
 vec4 player_color = {0, 1, 1, 1};
 bool player_is_grounded = false;
+
+SDL_Window* window;
 
 void player_on_hit(Body* self, const Body* other, const Hit hit) {
     if (other->collision_layer == COLLISION_LAYER_ENEMY) {
@@ -35,10 +39,10 @@ void player_on_hit_static(Body* self, const Static_Body* other, const Hit hit) {
 
 void enemy_on_hit_static(Body* self, const Static_Body* other, const Hit hit) {
     if (hit.normal[0] > 0) {
-        self->velocity[0] = 700;
+        self->velocity[0] = 400;
     }
     if (hit.normal[0] < 0) {
-        self->velocity[0] = -700;
+        self->velocity[0] = -400;
     }
 }
 
@@ -52,22 +56,24 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
     time_init(60);
     config_init();
     physics_init();
-    render_init(1280, 720);
+    window = render_init();
     entity_init();
 
-    player_id = entity_create((vec2){100, 300}, (vec2){50, 50}, (vec2){0, 0}, COLLISION_LAYER_PLAYER, player_mask, player_on_hit, player_on_hit_static);
+    player_id = entity_create((vec2){100, 200}, (vec2){24, 24}, (vec2){0, 0}, COLLISION_LAYER_PLAYER, player_mask, player_on_hit, player_on_hit_static);
 
-    const f32 width = (f32)global.render.width;
-    const f32 height = (f32)global.render.height;
+    i32 window_width, window_height;
+    SDL_GetWindowSize(window, &window_width, &window_height);
+    const f32 width = (f32)window_width / render_get_scale();
+    const f32 height = (f32)window_height / render_get_scale();
 
-    static_body_ids[0] = physics_static_body_create((vec2){width * 0.5f - 25, height - 25}, (vec2){width - 50, 50}, COLLISION_LAYER_TERRAIN);
-    static_body_ids[1] = physics_static_body_create((vec2){width - 25, height * 0.5f + 25}, (vec2){50, height - 50}, COLLISION_LAYER_TERRAIN);
-    static_body_ids[2] = physics_static_body_create((vec2){width * 0.5f + 25, 25}, (vec2){width - 50, 50}, COLLISION_LAYER_TERRAIN);
-    static_body_ids[3] = physics_static_body_create((vec2){25, height * 0.5f - 25}, (vec2){50, height - 50}, COLLISION_LAYER_TERRAIN);
-    static_body_ids[4] = physics_static_body_create((vec2){width * 0.5f, height * 0.5f}, (vec2){150, 150}, COLLISION_LAYER_TERRAIN);
+    static_body_ids[0] = physics_static_body_create((vec2){width * 0.5f - 12.5f, height - 12.5f}, (vec2){width - 25, 25}, COLLISION_LAYER_TERRAIN);
+    static_body_ids[1] = physics_static_body_create((vec2){width - 12.5f, height * 0.5f + 12.5f}, (vec2){25, height - 25}, COLLISION_LAYER_TERRAIN);
+    static_body_ids[2] = physics_static_body_create((vec2){width * 0.5f + 12.5f, 12.5f}, (vec2){width - 25, 25}, COLLISION_LAYER_TERRAIN);
+    static_body_ids[3] = physics_static_body_create((vec2){12.5f, height * 0.5f - 12.5f}, (vec2){25, height - 25}, COLLISION_LAYER_TERRAIN);
+    static_body_ids[4] = physics_static_body_create((vec2){width * 0.5f, height * 0.5f}, (vec2){62.5f, 62.5f}, COLLISION_LAYER_TERRAIN);
 
-    enemies_ids[0] = entity_create((vec2){600, 600}, (vec2){50, 50}, (vec2){900, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
-    enemies_ids[1] = entity_create((vec2){600, 600}, (vec2){90, 90}, (vec2){-900, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
+    enemies_ids[0] = entity_create((vec2){200, 200}, (vec2){25, 25}, (vec2){400, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
+    enemies_ids[1] = entity_create((vec2){200, 200}, (vec2){90, 90}, (vec2){400, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
 
     return SDL_APP_CONTINUE;
 }
@@ -75,25 +81,19 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 static void input_handle(Body* player_body) {
     vec2 vel = {0, player_body->velocity[1]};
 
-    f32 accel = 0;
+    constexpr f32 accel = 0;
 
     if (global.input.right > 0) {
-        vel[0] += 1000;
-        accel += 50;
+        vel[0] += 600;
     }
 
     if (global.input.left > 0) {
-        vel[0] -= 1000;
-        accel -= 50;
+        vel[0] -= 600;
     }
 
     if (global.input.up > 0 && player_is_grounded) {
         player_is_grounded = false;
-        vel[1] = 1000;
-    }
-
-    if (global.input.down > 0) {
-        vel[1] -= 800;
+        vel[1] = 1300;
     }
 
     player_body->velocity[0] = vel[0];
@@ -110,7 +110,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
 {
     if ((f32)SDL_GetTicks() - global.time.frame_last >= 1000.0f) {
         sprintf(title_buffer, "%s - %d fps", "Current FPS", global.time.frame_rate);
-        SDL_SetWindowTitle(global.render.window, title_buffer);
+        SDL_SetWindowTitle(window, title_buffer);
     }
 
     time_update();
@@ -136,7 +136,18 @@ SDL_AppResult SDL_AppIterate(void *appstate)
        render_aabb((f32*)physics_body_get(entity_get(enemies_ids[i])->body_id), WHITE);
     }
 
-    render_end();
+    for (u32 i = 0; i < 10000; i++) {
+        vec4 color = {
+            (f32)(rand() % 255) / 255.0f,
+            (f32)(rand() % 255) / 255.0f,
+            (f32)(rand() % 255) / 255.0f,
+            (f32)(rand() % 255) / 255.0f,
+        };
+
+        append_quad((vec2){rand() % 640, rand() % 360}, (vec2){rand() % 100, rand() % 100}, nullptr, color);
+    }
+
+    render_end(window);
 
     player_color[0] = 0;
     player_color[2] = 1;

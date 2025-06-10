@@ -1,3 +1,3 @@
 #include "global.h"
 
-Global global = {nullptr};
+Global global = {0};

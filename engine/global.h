@@ -5,7 +5,6 @@
 #include "time.h"
 
 typedef struct global {
-    Render_State render;
     Time_State time;
     Config_State config;
     Input_State input;

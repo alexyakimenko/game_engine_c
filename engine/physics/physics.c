@@ -114,7 +114,7 @@ void physics_init(void) {
     state.body_list = array_list_create(sizeof(Body), 0);
     state.static_body_list = array_list_create(sizeof(Static_Body), 0);
 
-    state.gravity = -79;
+    state.gravity = -100;
     state.terminal_velocity = -7000;
 
     tick_rate = 1.0f / (f32)iterations;
@@ -170,7 +170,7 @@ static Hit sweep_bodies(const Body *body, vec2 velocity) {
 }
 static void sweep_response(Body* body, vec2 velocity) {
     const Hit hit = sweep_static_bodies(body, velocity);
-    Hit hit_moving = sweep_bodies(body, velocity);
+    const Hit hit_moving = sweep_bodies(body, velocity);
 
     if (hit_moving.is_hit) {
         if (body->on_hit != NULL) {
