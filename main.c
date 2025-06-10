@@ -50,6 +50,7 @@ constexpr u8 enemy_mask = COLLISION_LAYER_PLAYER | COLLISION_LAYER_TERRAIN;
 constexpr u8 player_mask = COLLISION_LAYER_ENEMY | COLLISION_LAYER_TERRAIN;
 
 usize player_id;
+Sprite_Sheet sprite_sheet_player;
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 {
@@ -74,6 +75,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char* argv[])
 
     enemies_ids[0] = entity_create((vec2){200, 200}, (vec2){25, 25}, (vec2){400, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
     enemies_ids[1] = entity_create((vec2){200, 200}, (vec2){90, 90}, (vec2){400, 0}, COLLISION_LAYER_ENEMY, enemy_mask, nullptr, enemy_on_hit_static);
+
+    render_sprite_sheet_init(&sprite_sheet_player, "assets/sprites/player.png", 24, 24);
 
     return SDL_APP_CONTINUE;
 }
@@ -136,18 +139,11 @@ SDL_AppResult SDL_AppIterate(void *appstate)
        render_aabb((f32*)physics_body_get(entity_get(enemies_ids[i])->body_id), WHITE);
     }
 
-    for (u32 i = 0; i < 10000; i++) {
-        vec4 color = {
-            (f32)(rand() % 255) / 255.0f,
-            (f32)(rand() % 255) / 255.0f,
-            (f32)(rand() % 255) / 255.0f,
-            (f32)(rand() % 255) / 255.0f,
-        };
+    render_sprite_sheet_frame(&sprite_sheet_player, 1, 2, (vec2){100, 100});
+    render_sprite_sheet_frame(&sprite_sheet_player, 0, 4, (vec2){200, 200});
+    render_sprite_sheet_frame(&sprite_sheet_player, 0, 0, player_body->aabb.position);
 
-        append_quad((vec2){rand() % 640, rand() % 360}, (vec2){rand() % 100, rand() % 100}, nullptr, color);
-    }
-
-    render_end(window);
+    render_end(window, sprite_sheet_player.texture_id);
 
     player_color[0] = 0;
     player_color[2] = 1;
