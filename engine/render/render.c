@@ -144,7 +144,7 @@ void render_quad(vec2 pos, vec2 size, vec4 color) {
     glBindVertexArray(0);
 }
 
-void render_line_segment(vec2 start, const vec2 end, vec4 color) {
+void render_line_segment(const vec2 start, const vec2 end, vec4 color) {
     glUseProgram(shader_default);
     glLineWidth(3.0f);
 
@@ -234,9 +234,15 @@ static void calculate_sprite_texture_coordinates(vec4 result, const f32 row, con
     result[3] = y + h;
 }
 
-void render_sprite_sheet_frame(const Sprite_Sheet* sprite_sheet, const f32 row, const f32 column, vec2 position) {
+void render_sprite_sheet_frame(const Sprite_Sheet* sprite_sheet, const f32 row, const f32 column, vec2 position, bool is_flipped) {
     vec4 uvs;
     calculate_sprite_texture_coordinates(uvs, row, column, sprite_sheet->width, sprite_sheet->height, sprite_sheet->cell_width, sprite_sheet->cell_height);
+
+    if (is_flipped) {
+        const f32 temp = uvs[0];
+        uvs[0] = uvs[2];
+        uvs[2] = temp;
+    }
 
     vec2 size = {sprite_sheet->cell_width, sprite_sheet->cell_height};
     vec2 bottom_left = {position[0] - size[0] * 0.5, position[1] - size[1] * 0.5};
